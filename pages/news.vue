@@ -94,8 +94,8 @@ export default {
     window.history.replaceState({}, '', url);
       
       try {
-        // 使用fetch加载Markdown文件
-        const response = await fetch(`/articles/${article.filename}`);
+        // 使用fetch加载Markdown文件（基于 base 相对路径，兼容 GitHub Pages 子路径部署）
+        const response = await fetch(`${import.meta.env.BASE_URL}articles/${article.filename}`);
         if (!response.ok) throw new Error('文件加载失败');
         const markdownText = await response.text();
         this.articleContent = marked.parse(markdownText);

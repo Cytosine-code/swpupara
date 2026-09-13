@@ -11,9 +11,9 @@ try {
   console.error('处理Markdown图片时出错:', error.message);
 }
 
-// 源目录和目标目录
+// 源目录和目标目录（与 vite.config.js 的 build.outDir 保持一致）
 const sourceDir = path.join(__dirname, 'articles');
-const targetDir = path.join(__dirname, 'dist', 'articles');
+const targetDir = path.join(__dirname, 'docs', 'articles');
 
 // 确保目标目录存在
 if (!fs.existsSync(targetDir)) {

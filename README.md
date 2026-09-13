@@ -7,7 +7,6 @@
 ## 技术栈
 
 - Vue 3 + Vue Router
-- Vite 3
 - [marked](https://marked.js.org/)：Markdown 解析
 - [highlight.js](https://highlightjs.org/)：代码高亮
 - github-markdown-css：GitHub 风格文章排版
@@ -30,8 +29,8 @@
 ```bash
 npm install        # 首次运行前安装依赖
 npm run dev        # 启动开发服务器，默认 http://localhost:3000
-npm run build      # 打包，产物输出到 dist/
-npm run serve       # 本地预览构建产物
+npm run build      # 打包，产物输出到 docs/
+npm run serve       # 本地预览构建产物（docs/）
 ```
 
 ### 环境变量（.env）
@@ -75,7 +74,7 @@ VITE_DEV_SERVER_PORT=3000
 整个过程发生在浏览器端，由 [pages/news.vue](pages/news.vue) 完成：
 
 1. `import { articles } from '../articles/articles.js'` 读取文章登记表，页面加载时按 `date` 倒序排序。
-2. 点击文章（首次进入默认打开最新一篇）后，通过 `fetch('/articles/<filename>')` 拉取原始 Markdown 文本。
+2. 点击文章（首次进入默认打开最新一篇）后，通过 `fetch(import.meta.env.BASE_URL + 'articles/<filename>')` 拉取原始 Markdown 文本（相对 base 的路径，兼容 GitHub Pages 子路径部署）。
 3. 调用 `marked.parse()` 将 Markdown 转为 HTML（开启 GFM 与换行转换），通过 `v-html` 渲染到右侧正文区。
 4. 渲染完成后 `highlight.js` 对所有代码块做语法高亮，并自动为每个代码块注入“复制代码”按钮。
 5. 正文排版样式由 github-markdown-css 及 news.vue 中的样式提供。
@@ -89,13 +88,15 @@ VITE_DEV_SERVER_PORT=3000
 `npm run build` 执行 `vite build`，随后 package.json 中的 `postbuild` 钩子会**自动**执行 `node copy-articles.js`：
 
 1. 调用 `articles/processImages.js` 归一化所有 Markdown 中的图片路径；
-2. 将 `articles/*.md` 与 `articles/images/` 复制到 `dist/articles/`。
+2. 将 `articles/*.md` 与 `articles/images/` 复制到 `docs/articles/`。
 
-Vite 本身不会打包项目根目录下的 Markdown 文件，因此这一步是线上 `fetch('/articles/xxx.md')` 能正常访问的必要条件，请勿删除该脚本或 postbuild 配置。
+Vite 本身不会打包项目根目录下的 Markdown 文件，因此这一步是线上文章 `fetch` 能正常访问的必要条件，请勿删除该脚本或 postbuild 配置。
 
 ## 部署到 GitHub Pages
 
-1. 运行 `npm run build`，得到 `dist/` 目录（已内含 articles）。
-2. 将 `dist/` 内容推送到仓库的 `gh-pages` 分支（或在仓库 Settings → Pages 中选择对应分支/目录）。
-3. `vite.config.js` 中已设置 `base: './'`，路由也使用 hash 模式，因此站点放在 GitHub Pages 的子路径下也能正常工作，无需额外配置。
+项目配置为直接将构建产物输出到仓库内的 `docs/` 目录（`vite.config.js` 中 `build.outDir: 'docs'`），这是 GitHub Pages 原生支持的发布方式：
 
+1. 运行 `npm run build`，得到（或更新）`docs/` 目录（已内含 articles）。
+2. 将 `docs/` 一并提交并推送到仓库的默认分支（如 `main`）。注意 `docs/` **不能**写进 `.gitignore`。
+3. 在仓库 Settings → Pages → Build and deployment 中，Source 选择 **Deploy from a branch**，Branch 选择对应分支、目录选择 **`/docs`**，保存后等待 Pages 构建即可。
+4. `vite.config.js` 中已设置 `base: './'`，路由使用 hash 模式，文章请求也基于 base 相对路径，因此站点位于 `用户名.github.io/仓库名/` 子路径下也能正常工作。

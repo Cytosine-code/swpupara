@@ -15,8 +15,9 @@ export default defineConfig({
   },
   // 设置为相对路径，这样构建后的文件可以直接双击打开
   base: './',
-  // 构建配置，确保articles目录被复制到dist中
+  // 构建配置，产物输出到 docs/（GitHub Pages 可直接以 main 分支 /docs 目录发布）
   build: {
+    outDir: 'docs',
     rollupOptions: {
       // 复制静态资源到dist目录
       output: {
